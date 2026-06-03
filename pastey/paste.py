@@ -52,6 +52,17 @@ class Paste:
         base = self.client.__base_url__ if self.client else base_url()
         return f"{base}/{self.id}"
 
+    def find_file(self, file_id: str | None = None, file_name: str | None = None) -> File | None:
+        if not file_id and not file_name:
+            raise ValueError("Either `file_id` or `file_name` is required.")
+
+        ret = None
+        for file in self.files:
+            if (file_id and file.id == file_id) or (file_name and file.name == file_name):
+                ret = file
+
+        return ret
+
     def delete(self) -> None:
         LOGGER.warning(
             "This method is a best-effort async<>sync method to delete a paste. "
