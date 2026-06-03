@@ -1,0 +1,160 @@
+[project]
+name = "pastey.gg"
+description = "An api wrapper for pastey.gg!"
+authors = [{ name = "Alex Nørgaard", email = "umbra@abstractumbra.dev" }]
+dependencies = ["aiohttp>=3.10.11"]
+requires-python = "<4.0,>=3.8"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICEN[CS]E"]
+keywords = ["pastey", "paste"]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Intended Audience :: Developers",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Internet",
+    "Typing :: Typed",
+]
+dynamic = ["version"]
+
+[project.urls]
+"Issue Tracker" = "https://github.com/PythonistaGuild/pastey.py/issues"
+Discord = "https://discord.gg/RAKc3HF"
+Repository = "https://github.com/PythonistaGuild/pastey.py"
+
+[project.optional-dependencies]
+sync = ["requests>=2.32.4"]
+
+[dependency-groups]
+dev = ["ruff", "typing_extensions"]
+
+[tool.uv]
+package = true
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+# direct dependency references, e.g `pip @ git+https://github.com/pypa/pip.git@master`
+allow-direct-references = true
+
+[tool.hatch.version]
+path = "pastey/__init__.py"
+
+[tool.hatch.build]
+dev-mode-dirs = ["."]
+ignore-vcs = true
+
+[tool.hatch.build.targets.sdist]
+exclude = ["docs", ".github", ".venv", ".ruff_cache", "dist"]
+include = ["pastey/*", "LICENSE"]
+skip-excluded-dirs = false
+
+[tool.hatch.build.targets.wheel]
+packages = ["./pastey"]
+include = ["pastey/py.typed"]
+
+[[tool.uv.index]]
+name = "umbra"
+url = "https://about.abstractumbra.dev/pip/"
+explicit = true
+
+[tool.uv.sources]
+py-es3 = { git = "https://github.com/AbstractUmbra/py-es3" }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 125
+target-version = "py38"
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+    "ANN401",
+    "ASYNC240", # i dont like trio/anyio
+    "C901",
+    "COM812",
+    "CPY001",
+    "D",        # not needed here
+    "DOC",
+    "EM101",    # in this case this is okay
+    "F401",
+    "F402",
+    "F403",
+    "F405",
+    "INP001",   # due to how I load modules this results in annoyances
+    "PD011",    # this is not a numpy codebase
+    "PERF203",
+    "PLC0414",  # pyright ruling for `as` imports needed
+    "PLR0912",
+    "PLR0913",
+    "PLR2004",  # I hate this rule
+    "PLR6301",
+    "Q000",
+    "RUF001",
+    "RUF009",
+    "S101",     # assert is used for type checking in this codebase
+    "SLF001",
+    "SIM105",
+    "TRY003",   # over-eager rule
+    "TRY301",   # unrealistic rule
+    "UP034",
+]
+unfixable = [
+    "E501", # line length handled in other ways by ruff format
+    "ERA",  # Don't delete commented out code
+]
+
+[tool.ruff.lint.per-file-ignores]
+"main.py" = ["T201"]          # allow printing
+"examples/**/*.py" = ["T201"] # allow printing
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+[tool.ruff.lint.isort]
+split-on-trailing-comma = true
+combine-as-imports = true
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.ruff.lint.flake8-annotations]
+allow-star-arg-any = true
+
+[tool.ruff.lint.flake8-pytest-style]
+fixture-parentheses = false
+mark-parentheses = false
+parametrize-names-type = "csv"
+
+[tool.ruff.lint.flake8-quotes]
+inline-quotes = "double"
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+# https://discuss.python.org/t/problems-with-typeis/55410/6
+# https://discuss.python.org/t/problems-with-typeis/55410/46
+# Until what can go into a TypeIs/TypeGuard changes, these are just dangerous.
+"typing.TypeIs".msg = "TypeIs is fundamentally unsafe, even when using it as described to be safe"
+"typing.TypeGuard".msg = "TypeGuard is fundamentally unsafe"
+"typing_extensions.TypeIs".msg = "TypeIs is fundamentally unsafe, even when using it as described to be safe"
+"typing_extensions.TypeGuard".msg = "TypeGuard is fundamentally unsafe"
+
+[tool.pyright]
+useLibraryCodeForTypes = true
+typeCheckingMode = "strict"
+pythonVersion = "3.8"
+include = ["pastey/**/*.py", "examples/**/*.py"]
