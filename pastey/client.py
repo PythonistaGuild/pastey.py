@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Literal, overload
 
 import aiohttp
 
+from .errors import error_factory
 from .paste import Paste
 from .utils import base_url, create_payload
 
@@ -65,7 +66,10 @@ class Client:
             headers = {"Authorization": password}
 
         async with self.session.get(f"{self.__base_url__}/pastes/{paste_id}", headers=headers) as resp:
-            resp.raise_for_status()
+            if 200 < resp.status <= 299:
+                err = error_factory(resp.status)
+                raise err(status_code=resp.status, paste_id=paste_id, response=resp)
+
             data: PasteyGetResponse = await resp.json()
 
         if raw:
@@ -83,7 +87,9 @@ class Client:
         payload = create_payload(files=files, expires_at=expires_at, password=password, remaining_views=remaining_views)
 
         async with self.session.post(f"{self.__base_url__}/pastes", json=payload) as resp:
-            resp.raise_for_status()
+            if 200 < resp.status <= 299:
+                err = error_factory(resp.status)
+                raise err(status_code=resp.status, response=resp)
 
             data: PasteyCreateResponse = await resp.json()
 
@@ -93,7 +99,9 @@ class Client:
         async with self.session.delete(
             f"{self.__base_url__}/pastes/{paste_id}", headers={"X-Safety-Token": safety_token}
         ) as resp:
-            resp.raise_for_status()
+            if 200 < resp.status <= 299:
+                err = error_factory(resp.status)
+                raise err(status_code=resp.status, paste_id=paste_id, response=resp)
 
     async def close(self) -> None:
         if self.__owns_session__:
@@ -128,17 +136,40 @@ class SyncClient:
     @overload
     def get_paste(self, paste_id: str, *, password: str | None = None, raw: Literal[False]) -> Paste: ...
 
-    def get_paste(self, paste_id: str, *, password: str | None = None, raw: bool = False) -> Paste | str:
-        headers = None
+    def get_paste(
+        self,
+        paste_id: str,
+        *,
+        password: str | None = None,
+        raw: bool = False,
+        skip_view_increment: bool = False,
+        safety_token: str | None = None,
+    ) -> Paste | str:
+        url = f"{self.__base_url__}/pastes/{paste_id}"
+        headers: dict[str, str] = {}
         if password:
-            headers = {"Authorization": password}
+            headers["Authorization"] = password
+        if safety_token:
+            headers["X-Safety-Token"] = safety_token
 
-        with self.session.get(f"{self.__base_url__}/pastes/{paste_id}", headers=headers) as resp:
-            resp.raise_for_status()
+        if skip_view_increment:
+            url += "?skip_view=true"
+            if not safety_token:
+                raise ValueError("Cannot skip view counter increment without providing the safety token.")
+
+        with self.session.get(url, headers=headers) as resp:
+            if 200 < resp.status_code <= 299:
+                err = error_factory(resp.status_code)
+                raise err(status_code=resp.status_code, paste_id=paste_id, response=resp)
+
             data: PasteyGetResponse = resp.json()
 
         if raw:
-            return data["files"][0]["content"]
+            fmt = ""
+            for file in data["files"]:
+                fmt += file["content"] + "\n\n----\n\n"
+            return fmt
+
         return Paste.from_payload(self, data)
 
     def create_paste(
@@ -152,7 +183,9 @@ class SyncClient:
         payload = create_payload(files=files, expires_at=expires_at, password=password, remaining_views=remaining_views)
 
         with self.session.post(f"{self.__base_url__}/pastes", json=payload) as resp:
-            resp.raise_for_status()
+            if 200 < resp.status_code <= 299:
+                err = error_factory(resp.status_code)
+                raise err(status_code=resp.status_code, response=resp)
 
             data: PasteyCreateResponse = resp.json()
 
@@ -160,7 +193,9 @@ class SyncClient:
 
     def delete_paste(self, paste_id: str, safety_token: str) -> None:
         with self.session.delete(f"{self.__base_url__}/pastes/{paste_id}", headers={"X-Safety-Token": safety_token}) as resp:
-            resp.raise_for_status()
+            if 200 < resp.status_code <= 299:
+                err = error_factory(resp.status_code)
+                raise err(status_code=resp.status_code, paste_id=paste_id, response=resp)
 
     def close(self) -> None:
         if self.__owns_session__:
