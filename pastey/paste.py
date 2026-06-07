@@ -71,7 +71,7 @@ class Paste:
 
         if not self.client:
             raise ValueError(
-                "Paste was not created via a Client obj, unable to delete a paste without one. "
+                "Paste was not created via a Client obj, unable to delete the paste via this method. "
                 "Please use the `Client.delete_paste` method instead."
             )
 
