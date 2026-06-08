@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 import aiohttp
 
 from .file import File
-from .utils import base_url, create_payload, iscoroutinefunction
+from .utils import base_urls, create_payload, iscoroutinefunction
 
 if TYPE_CHECKING:
     from types_.paste import PasteyCreateResponse, PasteyGetResponse
@@ -49,7 +49,7 @@ class Paste:
 
     @property
     def url(self) -> str:
-        base = self.client.__base_url__ if self.client else base_url()
+        base = base_urls().frontend
         return f"{base}/{self.id}"
 
     def find_file(self, file_id: str | None = None, file_name: str | None = None) -> File | None:

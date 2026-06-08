@@ -4,7 +4,7 @@ import asyncio
 import inspect
 import os
 import sys
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, NamedTuple
 
 from .file import File
 
@@ -22,8 +22,16 @@ else:
     iscoroutinefunction = asyncio.iscoroutinefunction
 
 
-def base_url() -> str:
-    return os.getenv("PASTEY_BASE_URL", "https://api.pastey.gg")
+class BaseURLs(NamedTuple):
+    api: str
+    frontend: str
+
+
+def base_urls() -> BaseURLs:
+    api = os.getenv("PASTEY_API_BASE_URL", "https://api.pastey.gg")
+    fe = os.getenv("PASTEY_API_BASE_URL", "https://pastey.gg")
+
+    return BaseURLs(api, fe)
 
 
 def create_payload(

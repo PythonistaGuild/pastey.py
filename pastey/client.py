@@ -6,7 +6,7 @@ import aiohttp
 
 from .errors import error_factory
 from .paste import Paste
-from .utils import base_url, create_payload
+from .utils import base_urls, create_payload
 
 if TYPE_CHECKING:
     import datetime
@@ -32,7 +32,7 @@ __all__ = ("Client", "SyncClient")
 
 
 class Client:
-    __base_url__ = base_url()
+    __base_url__ = base_urls().api
     __slots__ = ("__owns_session__", "session")
 
     def __init__(self, *, session: aiohttp.ClientSession | None = None, base_url: str | None = None) -> None:
@@ -112,7 +112,7 @@ class Client:
 
 
 class SyncClient:
-    __base_url__ = base_url()
+    __base_url__ = base_urls().api
     __slots__ = ("__owns_session__", "session")
 
     def __init__(self, *, session: requests.Session | None = None, base_url: str | None = None) -> None:
