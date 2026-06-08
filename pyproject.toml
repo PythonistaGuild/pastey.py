@@ -1,5 +1,5 @@
 [project]
-name = "pastey.gg"
+name = "pastey.py"
 description = "An api wrapper for pastey.gg!"
 authors = [{ name = "Alex Nørgaard", email = "umbra@abstractumbra.dev" }]
 dependencies = ["aiohttp>=3.10.11"]
