@@ -66,9 +66,10 @@ class Client:
             headers = {"Authorization": password}
 
         async with self.session.get(f"{self.__base_url__}/pastes/{paste_id}", headers=headers) as resp:
-            if 200 < resp.status <= 299:
-                err = error_factory(resp.status)
-                raise err(status_code=resp.status, paste_id=paste_id, response=resp)
+            if not (200 <= resp.status < 300):
+                message = await resp.text()
+                err = error_factory(resp.status, paste_id=paste_id, message=message, response=resp)
+                raise err
 
             data: PasteyGetResponse = await resp.json()
 
@@ -87,9 +88,10 @@ class Client:
         payload = create_payload(files=files, expires_at=expires_at, password=password, remaining_views=remaining_views)
 
         async with self.session.post(f"{self.__base_url__}/pastes", json=payload) as resp:
-            if 200 < resp.status <= 299:
-                err = error_factory(resp.status)
-                raise err(status_code=resp.status, response=resp)
+            if not (200 <= resp.status < 300):
+                message = await resp.text()
+                err = error_factory(resp.status, message=message, response=resp)
+                raise err
 
             data: PasteyCreateResponse = await resp.json()
 
@@ -99,9 +101,10 @@ class Client:
         async with self.session.delete(
             f"{self.__base_url__}/pastes/{paste_id}", headers={"X-Safety-Token": safety_token}
         ) as resp:
-            if 200 < resp.status <= 299:
-                err = error_factory(resp.status)
-                raise err(status_code=resp.status, paste_id=paste_id, response=resp)
+            if not (200 <= resp.status < 300):
+                message = await resp.text()
+                err = error_factory(resp.status, paste_id=paste_id, message=message, response=resp)
+                raise err
 
     async def close(self) -> None:
         if self.__owns_session__:
@@ -158,9 +161,10 @@ class SyncClient:
                 raise ValueError("Cannot skip view counter increment without providing the safety token.")
 
         with self.session.get(url, headers=headers) as resp:
-            if 200 < resp.status_code <= 299:
-                err = error_factory(resp.status_code)
-                raise err(status_code=resp.status_code, paste_id=paste_id, response=resp)
+            if not (200 <= resp.status_code < 300):
+                message = resp.text
+                err = error_factory(resp.status_code, paste_id=paste_id, message=message, response=resp)
+                raise err
 
             data: PasteyGetResponse = resp.json()
 
@@ -183,9 +187,10 @@ class SyncClient:
         payload = create_payload(files=files, expires_at=expires_at, password=password, remaining_views=remaining_views)
 
         with self.session.post(f"{self.__base_url__}/pastes", json=payload) as resp:
-            if 200 < resp.status_code <= 299:
-                err = error_factory(resp.status_code)
-                raise err(status_code=resp.status_code, response=resp)
+            if not (200 <= resp.status_code < 300):
+                message = resp.text
+                err = error_factory(resp.status_code, message=message, response=resp)
+                raise err
 
             data: PasteyCreateResponse = resp.json()
 
@@ -193,9 +198,10 @@ class SyncClient:
 
     def delete_paste(self, paste_id: str, safety_token: str) -> None:
         with self.session.delete(f"{self.__base_url__}/pastes/{paste_id}", headers={"X-Safety-Token": safety_token}) as resp:
-            if 200 < resp.status_code <= 299:
-                err = error_factory(resp.status_code)
-                raise err(status_code=resp.status_code, paste_id=paste_id, response=resp)
+            if not (200 <= resp.status_code < 300):
+                message = resp.text
+                err = error_factory(resp.status_code, paste_id=paste_id, message=message, response=resp)
+                raise err
 
     def close(self) -> None:
         if self.__owns_session__:

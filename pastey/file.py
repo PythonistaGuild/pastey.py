@@ -48,7 +48,7 @@ class File:
     def to_payload(self) -> PasteyFile:
         ret: PasteyFile = {"content": self.content}
         if self.name:
-            ret["name"] = self.name
+            ret["name"] = str(self.name)
         if self.language:
             ret["language"] = self.language
 

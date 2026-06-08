@@ -21,10 +21,15 @@ class APIError(Exception):
         response: ClientResponse | Response,
     ) -> None:
         super().__init__(message)
-        self.message = message
+        self.message = f"[{status_code}]: {message}"
         self.response = response
         self.status_code = status_code
         self.paste_id = paste_id
+
+
+class BadRequestError(APIError):
+    def __init__(self, *, paste_id: str, response: ClientResponse | Response) -> None:
+        super().__init__(status_code=400, paste_id=paste_id, message="Payload was malformed.", response=response)
 
 
 class NotFoundError(APIError):
@@ -49,11 +54,19 @@ class UnauthorizedError(APIError):
         )
 
 
-def error_factory(code: int, /) -> type[APIError]:
-    if code == 401:
-        return UnauthorizedError
-    if code == 403:
-        return ForbiddenError
-    if code == 404:
-        return NotFoundError
-    return APIError
+def error_factory(
+    status_code: int, /, *, paste_id: str | None = None, message: str | None = None, response: ClientResponse | Response
+) -> APIError:
+    if status_code == 400:
+        ret = BadRequestError(paste_id=paste_id, response=response)  # pyright: ignore[reportArgumentType] # cannot be None in this code path
+    elif status_code == 401:
+        ret = UnauthorizedError(paste_id=paste_id, response=response)  # pyright: ignore[reportArgumentType] # cannot be None in this code path
+    elif status_code == 403:
+        ret = ForbiddenError(response=response)
+    elif status_code == 404:
+        ret = NotFoundError(paste_id=paste_id, response=response)  # pyright: ignore[reportArgumentType] # cannot be None in this code path
+    else:
+        ret = APIError(status_code=status_code, paste_id=paste_id, message=message, response=response)
+
+    ret.message += f"\n\n{message}"
+    return ret
