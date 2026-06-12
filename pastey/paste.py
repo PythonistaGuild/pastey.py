@@ -43,6 +43,9 @@ class Paste:
     def __repr__(self) -> str:
         return f"<Paste id={self.id} file_count={len(self.files)} views={self.views}>"
 
+    def __str__(self) -> str:
+        return self.url
+
     @classmethod
     def from_payload(cls, client: Client | SyncClient | None, data: PasteyCreateResponse | PasteyGetResponse) -> Self:
         return cls(client, data)
