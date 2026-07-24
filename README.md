@@ -1,3 +1,3 @@
-# pastey.py
+# Archival
 
-An API wrapper for accessing [pastey.gg](https://pastey.gg/)!
+This repoistory is being archived and forgotten. Please use an alternative paste service.
